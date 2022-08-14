@@ -205,6 +205,7 @@ const getIndentation = (level) => {
 
 const writeToFile = (info) => {
     const writeable = [];
+    let recursionDepth = 0;
 
     // Loop through all test files and format the data into lines
     info.forEach((file) => {
@@ -213,19 +214,19 @@ const writeToFile = (info) => {
         // Add the file name with no indentation
         writeable.push(name + newLine);
 
-        const addAllDescribeBlocks = (blocks) => {
+        const addAllDescribeBlocks = (blocks, calledRecursively) => {
             // Loop through describe blocks and add them
             blocks.forEach((block) => {
 
                 const getDescribeBlockLines = (block) => {
                     // Add the block name and its task ids if any
-                    const blockName = `${getIndentation(1)}Describe: ${block.name} - ${block.taskIds.join(",")}`;
+                    const blockName = `${getIndentation(1 + recursionDepth)}Describe: ${block.name} - ${block.taskIds.join(",")}`;
                     writeable.push(blockName + newLine);
             
                     // List out all its test cases
                     block.tests.map((test) => {
                         // Add the test case
-                        const testCase = `${getIndentation(2)}${test}`
+                        const testCase = `${getIndentation(2 + recursionDepth)}${test}`
                         writeable.push(testCase + newLine);
                     })
                 };
@@ -234,8 +235,11 @@ const writeToFile = (info) => {
 
                 // Recursively add all this blocks describe blocks
                 if (block.describeBlocks.length > 0) {
+                    recursionDepth++;
                     addAllDescribeBlocks(block.describeBlocks, true);
                 }
+
+                if (calledRecursively) recursionDepth--;
             });
         };
 
